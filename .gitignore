@@ -1,0 +1,11 @@
+_pycache_/
+*.py[oc]
+build/
+wheels/
+*.egg-info
+
+.venv
+.idea/
+.DS_Store
+.env
+.vscode/
