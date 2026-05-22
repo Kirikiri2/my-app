@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Звонок Токсису</title>
+<link rel="stylesheet" href="{{url_for('static', filename='style.css') }}">
+</head>
+<body>
+<h1>POV: Когда конец мая и куча долгов</h1>
+<img src="{{url_for('static', filename='meme.jpg')}}" alt="Мем">
+<p>Количество "это я": <span id="likeCount">{{ likes }}</span></p>
+<button onclick="sendLike()">Это я</button>
+<p><small>Страница обновлена {{ views }} раз(a)</small></p>
+<script>
+async function sendLike() {
+    const response = await fetch('/like', { method: 'POST' });
+    const data = await response.json();
+    document.getElementById('likeCount').innerText = data.likes;
+}
+</script>
+</body>
+</html>
