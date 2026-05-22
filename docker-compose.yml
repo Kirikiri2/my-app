@@ -1,0 +1,29 @@
+services: 
+  python-app:
+    build: . #you need to build an image from the dockerfile in the current
+    ports:
+      - "8000:8000" #port forwarding: host: container
+    volumes: #mounting files and folders from the host inside the container
+      - ./app.py:/app/app.py
+      - ./templates:/app/templates
+      - ./static:/app/static
+    networks:
+      - monitoring
+  prometheus:
+    image: prom/prometheus:latest #using a ready-made image from the docker hub
+    ports:
+      - "9090:9090" #forwarding port 9090 of the host to 9090 of the container
+    volumes: #mounting the configuration and volume for data
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command: #commands passed at Prometheus startup
+      - '--config.file=/etc/prometheus/prometheus.yml' #path to the configuration
+      - '--storage.tsdb.path=/prometheus' #restart data warehouse path
+    restart: unless-stopped #restart policy: do not restart if stopped
+    networks:
+      - monitoring
+volumes:
+  prometheus-data: #volume for prometheus data (so that they are not lost when the container is recreated)
+networks:
+  monitoring:
+    driver: bridge #using the standard docker bridge driver
