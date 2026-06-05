@@ -1,0 +1,28 @@
+auth_enabled: false #отключение аутентификации
+
+server:
+  http_listen_port: 3100 #порт, на котором сервер принимает запросы от grafana alloy
+
+common: #общие параметры
+  path_prefix: /loki #базовая директория для всех данных
+  storage: #конфигурация хранилища данных
+    filesystem:
+      chunks_directory: /loki/chunks #директория для хранения чанков (сжатые блоки логов)
+      rules_directory: /loki/rules #директория для правил записи и алертинга 
+  replication_factor: 1 
+  ring: #кольцо хэширования для распределения данных
+    kvstore:
+      store: inmemory #хранилище состояния кольца в памяти
+
+schema_config: #схема индексации и хранения логов
+  configs:
+    - from: 2026-05-15 #дата начала применения
+      store: tsdb # тип хранилища индекса (этот для новых версий)
+      object_store: filesystem #файловая система
+      schema: v13 #версия схемы
+      index:
+        prefix: index_ 
+        period: 24h #период ротации индекса
+
+limits_config: #лимиты и ограничения для защиты от перегрузки
+  volume_enabled: true

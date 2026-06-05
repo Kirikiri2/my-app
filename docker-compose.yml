@@ -1,4 +1,4 @@
-services: #начало описание контейнеров, их будет 3
+services: #начало описание контейнеров, их будет 2
   python-app:
     build: . #собрать образ из dockerfile нужно в текущей директории
     ports:
@@ -23,20 +23,50 @@ services: #начало описание контейнеров, их будет
     restart: unless-stopped #политика перезапуска: не перезапускать, если остановлен вручную
     networks:
       - monitoring
+
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
     restart: unless-stopped
     ports:
       - '3000:3000'
-    volumes: #монтируем том данных
+    volumes:
       - grafana-storage:/var/lib/grafana
     networks:
       - monitoring
 
+  loki:
+     image: grafana/loki:latest
+     container_name: loki
+     restart: unless-stopped
+     ports:
+      - "3100:3100"
+     volumes:
+      - ./loki-config.yaml:/etc/loki/loki-config.yaml
+      - loki-data:/loki
+     command: -config.file=/etc/loki/loki-config.yaml
+     networks:
+      - monitoring
+
+  alloy:
+    image: grafana/alloy:latest
+    container_name: alloy
+    restart: unless-stopped
+    ports:
+      - "12345:12345"   # интерфейс alloy для отладки
+    volumes:
+      - ./config.alloy:/etc/alloy/config.alloy
+      - /var/run/docker.sock:/var/run/docker.sock:ro   # чтобы видеть все контейнеры
+    command: run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
+    networks:
+      - monitoring
+    depends_on:
+      - loki
+
 volumes: #объявление томов 
   prometheus-data: #том для данных prometheus (чтобы не терялись при пересоздании контейнера)
   grafana-storage: {} #том для данных grafana
+  loki-data: #том для данных loki
 
 networks:
   monitoring:
