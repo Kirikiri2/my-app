@@ -1,30 +1,43 @@
-services: 
+services: #начало описание контейнеров, их будет 3
   python-app:
-    build: . 
+    build: . #собрать образ из dockerfile нужно в текущей директории
     ports:
-      - "8000:8000"
-    volumes: 
-      - ./app.py:/app/app.py
+      - "8000:8000" #проброс портов: хост:контейнер
+    volumes:  #монтируем файлы и папки с хоста внутрь контейнера
+      - ./app.py:/app/app.py 
       - ./templates:/app/templates
-      - ./static:/app/static
+      - ./static:/app/static          
     networks:
       - monitoring
 
   prometheus:
-    image: prom/prometheus:latest 
+    image: prom/prometheus:latest   #используем готовый образ с docker hub
     ports:
-      - "9090:9090"
-    volumes:
+      - "9090:9090" #проброс порта 9090 хоста на 9090 контейнера
+    volumes:  #монтируем конфигурацию и том для данных
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus-data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml' 
-      - '--storage.tsdb.path=/prometheus' 
-    restart: unless-stopped
+    command:  #команды, передаваемые при запуске Prometheus
+      - '--config.file=/etc/prometheus/prometheus.yml'  #путь к конфигу
+      - '--storage.tsdb.path=/prometheus' #путь к хранилищу данных
+    restart: unless-stopped #политика перезапуска: не перезапускать, если остановлен вручную
     networks:
       - monitoring
-volumes:
-  prometheus-data:
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    volumes: #монтируем том данных
+      - grafana-storage:/var/lib/grafana
+    networks:
+      - monitoring
+
+volumes: #объявление томов 
+  prometheus-data: #том для данных prometheus (чтобы не терялись при пересоздании контейнера)
+  grafana-storage: {} #том для данных grafana
+
 networks:
   monitoring:
-    driver: bridge 
+    driver: bridge  #используем стандартный bridge-драйвер docker
